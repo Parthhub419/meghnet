@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MeghNet — AI Climate Intelligence Platform</title>
+  <meta name="description" content="AI-powered climate intelligence and disaster alert system for rural India"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<!-- Emergency Banner -->
+<div class="emergency-banner" id="emergencyBanner" data-t="critical_banner">
+  🆘 CRITICAL ALERT ACTIVE — Scroll down for emergency instructions
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="/">
+      <div class="logo-mark">🌤️</div>
+      <div>
+        <span class="logo-name">Megh<span>Net</span></span>
+        <span class="logo-tagline" data-t="app_tagline">AI Climate Intelligence</span>
+      </div>
+    </a>
+    <div class="header-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" data-lang="hi" onclick="setLanguage('hi')">हिं</button>
+        <button class="lang-btn" data-lang="mr" onclick="setLanguage('mr')">मर</button>
+      </div>
+      <div class="alert-badge" id="alertBadge">🔔 0</div>
+      <div class="offline-badge" id="offlineBadge" style="display:none" data-t="offline">📴 Offline</div>
+      <div class="pin-count" id="pinCount" style="display:none">📍 <span id="pinNum">0</span> <span data-t="analyzed">analyzed</span></div>
+      <div class="db-dot off" id="dbDot" title="Database status"></div>
+    </div>
+  </div>
+</header>
+
+<div class="app-layout">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="left-panel">
+
+    <!-- DB Status -->
+    <div class="db-status-bar disconnected" id="dbStatusBar">
+      <div class="db-dot off" id="dbDotBar"></div>
+      <span id="dbStatusText" data-t="db_not_configured">Database not configured</span>
+    </div>
+
+    <!-- Search Card -->
+    <section class="card search-card">
+      <h2 data-t="get_climate">Get Climate Intelligence</h2>
+      <p class="subtitle" data-t="subtitle">Click the map or enter coordinates below</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label data-t="location_name">Location Name</label>
+          <input type="text" id="locationName" data-tp="location_name" value="Nagpur, Maharashtra"/>
+        </div>
+        <div class="form-group">
+          <label data-t="i_am_a">I am a</label>
+          <select id="userType" onchange="toggleFarmerFields()">
+            <option value="general" data-t="general">General Public</option>
+            <option value="farmer" data-t="farmer">Farmer</option>
+            <option value="disaster_manager" data-t="disaster_manager">Disaster Manager</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row coords-row">
+        <div class="form-group">
+          <label data-t="latitude">Latitude</label>
+          <input type="number" id="latitude" step="0.0001" value="21.1458"/>
+        </div>
+        <div class="form-group">
+          <label data-t="longitude">Longitude</label>
+          <input type="number" id="longitude" step="0.0001" value="79.0882"/>
+        </div>
+        <button class="btn-locate" onclick="getMyLocation()" data-t="my_location">📍 My Location</button>
+      </div>
+
+      <!-- Farmer fields -->
+      <div id="farmerFields" style="display:none">
+        <div class="farmer-fields-header" data-t="farm_info">🌾 Tell us about your farm</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-t="crop_type">Crop Type</label>
+            <select id="cropType">
+              <option value="">Select crop...</option>
+              <option value="rice">Rice / Paddy</option><option value="wheat">Wheat</option>
+              <option value="cotton">Cotton</option><option value="sugarcane">Sugarcane</option>
+              <option value="soybean">Soybean</option><option value="maize">Maize / Corn</option>
+              <option value="tomato">Tomato</option><option value="onion">Onion</option>
+              <option value="potato">Potato</option><option value="groundnut">Groundnut</option>
+              <option value="turmeric">Turmeric</option><option value="orange">Orange / Citrus</option>
+              <option value="banana">Banana</option><option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-t="crop_stage">Crop Stage</label>
+            <select id="cropStage">
+              <option value="sowing">Sowing</option><option value="germination">Germination</option>
+              <option value="vegetative">Vegetative</option><option value="flowering">Flowering</option>
+              <option value="fruiting">Fruiting</option><option value="harvesting">Harvesting</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-t="soil_type">Soil Type</label>
+            <select id="soilType">
+              <option value="loamy">Loamy</option><option value="clay">Clay</option>
+              <option value="sandy">Sandy</option><option value="black">Black Cotton</option>
+              <option value="red">Red Soil</option><option value="alluvial">Alluvial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-t="irrigation">Irrigation</label>
+            <select id="irrigationType">
+              <option value="rainfed">Rainfed</option><option value="drip">Drip</option>
+              <option value="flood">Flood</option><option value="sprinkler">Sprinkler</option>
+              <option value="canal">Canal</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Radar + Analyze button -->
+      <div class="btn-analyze-wrap">
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+          <span id="btnText" data-t="analyze_btn">🔍 Analyze Climate</span>
+          <span id="btnLoader" style="display:none" data-t="analyzing">⏳ Analyzing...</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" style="display:none">
+
+      <!-- Risk Banner -->
+      <div class="risk-banner" id="riskBanner">
+        <div class="risk-icon" id="riskIcon">✅</div>
+        <div class="risk-text">
+          <div class="risk-level" id="riskLevel">LOW RISK</div>
+          <div class="risk-location" id="riskLocation">—</div>
+          <div class="risk-time" id="riskTime">—</div>
+        </div>
+        <div class="saved-badge" id="savedBadge" style="display:none" data-t="saved">💾 Saved</div>
+      </div>
+
+      <!-- Disaster Alerts -->
+      <section class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin-bottom:0" data-t="disaster_alerts">🔔 Disaster Alerts</h3>
+          <div class="alert-level-bar NONE" id="alertLevelBar" style="margin-bottom:0;padding:4px 10px">
+            <span id="alertLevelText" data-t="checking">Checking...</span>
+          </div>
+        </div>
+        <div id="alertsContainer" class="alerts-section"></div>
+      </section>
+
+      <!-- Current Conditions -->
+      <section class="card">
+        <h3 data-t="current_conditions">Current Conditions</h3>
+        <div class="weather-grid" id="weatherGrid"></div>
+      </section>
+
+      <!-- 3-Day Forecast -->
+      <section class="card">
+        <h3 data-t="forecast_title">3-Day Forecast</h3>
+        <div class="forecast-days" id="forecastDays"></div>
+        <div class="chart-tabs">
+          <button class="tab-btn active" onclick="switchTab('temp',this)" data-t="temp_tab">🌡️ Temperature</button>
+          <button class="tab-btn" onclick="switchTab('rain',this)" data-t="rain_tab">🌧️ Rainfall</button>
+          <button class="tab-btn" onclick="switchTab('wind',this)" data-t="wind_tab">💨 Wind</button>
+        </div>
+        <div class="chart-container" id="tempChartWrap"><canvas id="tempChart"></canvas></div>
+        <div class="chart-container" id="rainChartWrap" style="display:none"><canvas id="rainChart"></canvas></div>
+        <div class="chart-container" id="windChartWrap" style="display:none"><canvas id="windChart"></canvas></div>
+      </section>
+
+      <!-- Farmer Advisory -->
+      <section class="card farmer-advisory-card" id="farmerAdvisoryCard" style="display:none">
+        <div class="fa-header">
+          <span class="fa-badge" data-t="farmer_advisory">🌾 Farmer Advisory</span>
+          <span class="fa-crop-tag" id="faCropTag"></span>
+        </div>
+        <div class="fa-overall" id="faOverall"></div>
+        <div class="fa-goodnews" id="faGoodnews" style="display:none">
+          <span class="goodnews-icon">✅</span><span id="faGoodnewsText"></span>
+        </div>
+        <div class="fa-grid">
+          <div class="fa-section">
+            <div class="fa-section-title" data-t="irrigation_plan">💧 Irrigation Plan</div>
+            <p id="faIrrigation"></p>
+          </div>
+          <div class="fa-section">
+            <div class="fa-section-title" data-t="pest_risk">🐛 Pest & Disease Risk</div>
+            <p id="faPestRisk"></p>
+          </div>
+        </div>
+        <div class="fa-harvest">
+          <div class="fa-section-title" data-t="harvest_timing">🌾 Harvest Timing</div>
+          <p id="faHarvest"></p>
+        </div>
+        <div class="fa-tasks-section">
+          <div class="fa-section-title" data-t="tasks_week">✅ Tasks This Week</div>
+          <ul id="faWeeklyTasks" class="fa-task-list"></ul>
+        </div>
+        <div class="fa-avoid-section">
+          <div class="fa-section-title" data-t="avoid_week">🚫 Avoid This Week</div>
+          <ul id="faDontDo" class="fa-avoid-list"></ul>
+        </div>
+      </section>
+
+      <!-- AI Analysis -->
+      <section class="card ai-card">
+        <div class="ai-header">
+          <div class="ai-badge" data-t="ai_analysis">🤖 AI Analysis</div>
+          <span class="ai-label" data-t="powered_by">Powered by Gemini</span>
+        </div>
+        <p id="aiSummary" class="ai-summary"></p>
+      </section>
+
+      <!-- Recommendations -->
+      <section class="card">
+        <h3 data-t="recommendations">Actionable Recommendations</h3>
+        <ul id="recommendationsList" class="rec-list"></ul>
+      </section>
+
+    </section>
+
+    <!-- Error -->
+    <div class="card error-card" id="errorCard" style="display:none">
+      <span class="error-icon">❌</span>
+      <div id="errorMsg">Something went wrong. Please try again.</div>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="right-panel">
+    <div class="right-tabs">
+      <button class="right-tab active" onclick="switchRightTab('map',this)" data-t="live_map">🗺️ Live Map</button>
+      <button class="right-tab" onclick="switchRightTab('db',this)" data-t="history">💾 History</button>
+      <button class="right-tab" onclick="switchRightTab('alerts',this)" data-t="alert_check">🔔 Alert Check</button>
+    </div>
+
+    <!-- Map tab -->
+    <div class="right-tab-content active" id="tabMap">
+      <div class="map-wrapper">
+        <div id="map"></div>
+        <div class="map-hint" id="mapHint">🛰️ Click anywhere to analyze that location</div>
+        <div class="map-legend">
+          <div class="legend-title">Risk Level</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Low</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Medium</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f97316"></span>High</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Critical</div>
+        </div>
+      </div>
+      <div class="card history-card" id="historyCard" style="display:none">
+        <h3 data-t="session_locations">📍 Session Locations</h3>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </div>
+
+    <!-- DB History tab -->
+    <div class="right-tab-content" id="tabDb">
+      <div class="db-panel">
+        <div class="card stats-card">
+          <h3 data-t="risk_distribution">Risk Distribution</h3>
+          <div class="stats-grid">
+            <div class="stat-box green"><div class="sb-num" id="statLow">—</div><div class="sb-label">Low</div></div>
+            <div class="stat-box yellow"><div class="sb-num" id="statMedium">—</div><div class="sb-label">Medium</div></div>
+            <div class="stat-box orange"><div class="sb-num" id="statHigh">—</div><div class="sb-label">High</div></div>
+            <div class="stat-box red"><div class="sb-num" id="statCritical">—</div><div class="sb-label">Critical</div></div>
+          </div>
+          <div class="stat-total" id="statTotal">—</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="margin-bottom:0" data-t="recent_analyses">Recent Analyses</h3>
+            <button class="btn-locate" onclick="loadDbHistory()" style="height:28px;font-size:10px" data-t="refresh">↻ Refresh</button>
+          </div>
+          <div id="dbHistoryList" class="db-history-list">
+            <div style="text-align:center;color:var(--muted);padding:24px;font-size:12px" data-t="db_not_configured">Configure Supabase to see history</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Check tab -->
+    <div class="right-tab-content" id="tabAlerts">
+      <div class="db-panel">
+        <div class="card alert-check-card">
+          <h3 data-t="quick_alert_check">Quick Alert Check</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:14px" data-t="quick_alert_desc">Check disaster alerts for any location instantly.</p>
+          <div class="alert-check-input">
+            <input type="number" id="checkLat" data-tp="latitude" placeholder="Latitude" step="0.01" value="21.1458"/>
+            <input type="number" id="checkLng" data-tp="longitude" placeholder="Longitude" step="0.01" value="79.0882"/>
+          </div>
+          <div class="btn-analyze-wrap" style="margin-top:0">
+            <button class="btn-analyze" onclick="quickAlertCheck()" data-t="check_now">⚡ Check Alerts Now</button>
+          </div>
+        </div>
+        <div id="quickAlertResults"></div>
+      </div>
+    </div>
+
+  </div><!-- /right-panel -->
+
+</div><!-- /app-layout -->
+
+<footer class="footer" data-t="footer">
+  MeghNet · ISRO Bharatiya Antariksh Hackathon 2026 · Team MeghNet
+</footer>
+
+<script src="/static/js/translations.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
