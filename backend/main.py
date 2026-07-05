@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import httpx, google.generativeai as genai
 import json, os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from dotenv import load_dotenv
 import database as db
 import alerts as alert_engine
@@ -62,9 +62,52 @@ class LocationRequest(BaseModel):
     irrigation: Optional[str] = None
 
 class ForecastDay(BaseModel):
-    date: str; day_short: str; temp_max: float; temp_min: float
-    precipitation: float; rain_probability: int; wind_max: float
-    uv_index: float; weather_code: int; description: str; emoji: str
+    date: str
+    day_short: str
+    temp_max: float
+    temp_min: float
+    precipitation: float
+    rain_probability: int
+    wind_max: float
+    uv_index: float
+    weather_code: int
+    description: str
+    emoji: str
+
+class DisasterAlert(BaseModel):
+    id: str
+    severity: str
+    type: str
+    emoji: str
+    title: str
+    message: str
+    action: str
+    expires_in: str
+
+class FarmerAdvisory(BaseModel):
+    overall_advice: str
+    irrigation_plan: str
+    pest_disease_risk: str
+    harvest_warning: str
+    weekly_tasks: List[str]
+    dont_do: List[str]
+    good_news: Optional[str]
+
+class ClimateResponse(BaseModel):
+    location: str
+    timestamp: str
+    weather: dict
+    language: str
+    forecast: List[ForecastDay]
+    disaster_alerts: List[DisasterAlert]
+    alert_level: str
+    risk_level: str
+    risk_color: str
+    summary: str
+    recommendations: List[str]
+    farmer_advisory: Optional[FarmerAdvisory]
+    raw_weather: dict
+    saved_to_db: bool = False
 
 class DisasterAlert(BaseModel):
     id: str; severity: str; type: str; emoji: str
@@ -72,7 +115,7 @@ class DisasterAlert(BaseModel):
 
 class FarmerAdvisory(BaseModel):
     overall_advice: str; irrigation_plan: str; pest_disease_risk: str
-    harvest_warning: str; weekly_tasks: list[str]; dont_do: list[str]
+    harvest_warning: str; weekly_tasks: List[str]; dont_do: list[str]
     good_news: Optional[str]
 
 class ClimateResponse(BaseModel):
